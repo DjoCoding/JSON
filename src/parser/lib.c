@@ -1,9 +1,10 @@
 #define LIB_IMPLEMENTATION
 
-#include "./lib.h"
+#include "./include/lib.h"
 
 char *fcontent(char *filename) {
     FILE *f = fopen(filename, "r");
+
     if (!f) {
         fprintf(stderr, "ERROR: could not open file %s for reading\n", filename);
         exit(EXIT_FAILURE);
@@ -13,11 +14,13 @@ char *fcontent(char *filename) {
     size_t fsize = ftell(f);
     fseek(f, 0, SEEK_SET);
 
-    char *content = (char *)calloc(sizeof(char) * (fsize + 1), 0);
+    char *content = (char *)malloc(sizeof(char) * (fsize + 1));
 
     size_t read_size = fread(content, sizeof(char), fsize, f);
 
     content[read_size] = '\0';
+
+    fclose(f);
 
     return content;
 }
@@ -36,4 +39,12 @@ int iscolon(char c) {
 
 int isquote(char c) {
     return (c == '"');
+}
+
+int ispoint(char c) {
+    return (c == '.');
+}
+
+int isroot(char c) {
+    return (c == '/');
 }

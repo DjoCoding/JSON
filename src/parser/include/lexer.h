@@ -14,7 +14,8 @@ typedef struct {
 } Lexer;
 
 Lexer lexer_init(char *input);
-Tokens lex(Lexer *lexer);
+Tokens lex_json_file(Lexer *lexer);
+Tokens lex_modifier_request(Lexer *lexer);
 
 
 

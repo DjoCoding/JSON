@@ -10,5 +10,7 @@ int isbrace(char c);
 int iscomma(char c);
 int iscolon(char c);
 int isquote(char c);
+int ispoint(char c);
+int isroot(char c);
 
 #endif

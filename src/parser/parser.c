@@ -1,6 +1,6 @@
 #define PARSER_IMPLEMENTATION
 
-#include "./parser.h"
+#include "./include/parser.h"
 
 Parser parser_init(Tokens tokens) {
     return (Parser) {
@@ -193,30 +193,78 @@ defer:
     return NULL;
 }
 
-void print_indent(int indent) {
-    for (int i = 0; i < indent; i++) printf("\t");
+int get_field_index(JSON *json, char *key) {
+    for (int i = 0; i < (int)json->count; ++i) {
+        if (strcmp(key, json->items[i]->key) == 0) { return i; }
+    }
+    return -1;
 }
 
-void json_format(JSON *json, int indent) {
-    printf("{\n");
-
-    for (int i = 0; i < json->count; ++i) {
-        print_indent(indent + 1);
-
-        printf("%s: ", json->items[i]->key);
-
-        if (json->items[i]->type == NODE_TYPE_NUMBER) { printf("%d", json->items[i]->value.as_int); }
-        else if (json->items[i]->type == NODE_TYPE_STRING) { printf("%s", json->items[i]->value.as_str); }
-        else { json_format(json->items[i]->value.as_json, indent + 1); }
-        
-        printf(",\n");
+JSON_Node *get_field(Parser *parser, JSON *root) {
+    // check for the point token
+    if (parser_expect(parser, TT_POINT) != 1) {
+        fprintf(stderr, "ERROR: expected a point token\n");
+        exit(EXIT_FAILURE);
     }
 
-    print_indent(indent);
-    printf("}");
+    parser_consume(parser);
+
+    if (parser_expect(parser, TT_FIELD) != 1) {
+        fprintf(stderr, "ERROR: expected a field token\n");
+        exit(EXIT_FAILURE);
+    }
+
+    Token current = parser_peek(parser);
+    parser_consume(parser);
+
+    // search for the field key in the items of the current json node
+    char *field_key = view_to_string(current.value);
+    int index = get_field_index(root, field_key);
+
+    if (index == -1) {
+        fprintf(stderr, "ERROR: json type has no field key %s\n", field_key);
+        exit(EXIT_FAILURE);
+    }
+
+    free(field_key);
+
+    return root->items[index];
 }
 
-void json_to_string(JSON *json) {
-    json_format(json, 0);
-    printf("\n");
-} 
+JSON_Node *json_get_json_node(JSON *obj, Tokens tokens) {
+    if (obj == NULL) { return NULL; }
+    if (obj->items == NULL) { return NULL; }
+
+    Parser parser = parser_init(tokens);
+
+    if (parser_expect(&parser, TT_ROOT) != 1) {
+        fprintf(stderr, "ERROR: expected the root token first\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // consume the root token
+    parser_consume(&parser);
+    
+    JSON *root = obj;
+    JSON_Node *node = NULL;
+
+    // parse a field
+    while (!parser_end(&parser)) {
+        node = get_field(&parser, root);
+        if (node->type != NODE_TYPE_JSON) { break; }
+        root = node->value.as_json;
+    }
+
+    if (!parser_end(&parser)) {
+        fprintf(stderr, "ERORR: unexpected token found\n");
+        exit(EXIT_FAILURE);
+    }
+
+    return node;
+}
+
+void json_set_json_node(JSON **obj, Tokens tokens, JSON_Node *item) {
+    JSON_Node *node = json_get_json_node(obj, tokens);
+    if (node->type == NODE_TYPE_JSON) { free(node->value.as_json); }
+    else if (node->type == NODE_TYPE_STRING) { free(node->value.as_str); }
+}

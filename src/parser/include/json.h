@@ -1,19 +1,8 @@
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef JSON_H
+#define JSON_H
 
-#include "./token.h"
-#include "./da.h"
-
-typedef enum {
-    PARSER_NO_ERROR,
-    PARSER_UNEXPECTED_TOKEN,
-} Parser_Error;
-
-typedef struct {
-    Tokens tokens;
-    size_t current;
-    Parser_Error error;
-} Parser;
+#include <stdio.h>
+#include <stdlib.h>
 
 typedef struct JSON JSON;
 
@@ -41,9 +30,7 @@ struct JSON {
     size_t size;
 };
 
-
-Parser parser_init(Tokens tokens);
-JSON *parse(Parser *parser);
-void json_to_string(JSON *json);
+void json_to_string(JSON *jso);
+void json_destroy(JSON *json);
 
 #endif

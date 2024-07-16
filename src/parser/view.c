@@ -1,6 +1,6 @@
 #define VIEW_IMPLEMENTATION
 
-#include "./view.h"
+#include "./include/view.h"
 
 View view_init(char *content) {
     View view = (View) {

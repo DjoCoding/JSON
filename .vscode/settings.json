@@ -4,6 +4,8 @@
         "lib.h": "c",
         "stdio.h": "c",
         "parser.h": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "view.h": "c",
+        "json_modifier.h": "c"
     }
 }

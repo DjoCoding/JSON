@@ -4,12 +4,18 @@
 #include "./view.h"
 
 typedef enum {
+    // json file to json tokens token types
     TT_STRING,
     TT_COLON,
     TT_LEFTB,
     TT_RIGHTB,
     TT_COMMA,
     TT_NUMBER,
+
+    // modifier token types
+    TT_ROOT,
+    TT_FIELD,
+    TT_POINT,
 } Token_Type;
 
 typedef View Token_Value;
