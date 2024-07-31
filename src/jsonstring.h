@@ -57,6 +57,8 @@ void print_array_node_value(JSON_Array *array, size_t indent) {
 
 
 void print_json_node(JSON_Node *node, size_t indent) {
+    if (node == NULL) return;
+
     for (size_t i = 0; i < indent; ++i) 
         printf("\t");
     
