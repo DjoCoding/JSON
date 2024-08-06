@@ -1,3 +1,9 @@
+# JSON Parser
+a simple, header only C library for parsing JSON
+
+# Usage
+below is a simple code snippet that shows the different functions used for parsing
+```C
 #define JSON_IMPLEMENTATION
 #include "json.h"
 
@@ -60,3 +66,4 @@ int main(void) {
 
     return 0;
 }
+```

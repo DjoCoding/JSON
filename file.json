@@ -1,16 +1,13 @@
 {
-    "files": {
-        "json.h": "c",
-        "lib.h": "c",
-        "stdio.h": "c",
-        "parser.h": "c",
-        "type_traits": "c",
-        "view.h": "c",
-        "json_modifier.h": "c"
-    },
-    "names": {
-        "good-names": {
-            "djo": "for djaoued"
+    "filename": "file.json",
+    "number": -12120.101,
+    "this is me": {
+        "number": "1",
+        "djo": "2",
+        "file": {
+            "this is me again": {
+                "ME AGAIN": 1
+            }
         }
     }
 }

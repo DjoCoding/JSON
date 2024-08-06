@@ -1,2 +1,2 @@
-main:	src/*.h main.c
-	cc main.c -o main -g -Wall
+main: src/*.h main.c
+	cc main.c -o main -g
