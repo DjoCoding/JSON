@@ -17,6 +17,13 @@ JSON_String generate_file(char *filename, size_t file_size, char *file_permissio
     return file;
 }
 
+int main2(void) {
+    JSON object = json_parse_file("./file.json");
+    if (!object) { errtell(); }
+    json_clean_object(object);
+    return 0;
+}
+
 int main(void) {
     JSON_String dir = {0};
 
@@ -42,8 +49,9 @@ int main(void) {
 
     JSON object;
     if ((object = json_parse_json_string(dir)) == NULL) {
-        printf("%s\n", error);
+        errtell();
         json_string_clean(dir);
+        return 1;
     }
 
     // get values for the object
@@ -54,6 +62,9 @@ int main(void) {
 
     // log the json object to stdout
     JSON_Log(object);
+
+    // write the object to jsno file
+    json_write_object_to_file("output.json", object);
 
     json_string_clean(dir);
     json_clean_object(object);

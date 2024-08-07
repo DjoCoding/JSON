@@ -121,9 +121,9 @@ struct JSON_Parser {
 
 // the json path 
 
-typedef struct JSON_Path JSON_Path;
+typedef struct String_View_List JSON_Path;
 
-struct JSON_Path {
+struct String_View_List {
     String_View *items;
     size_t count;
     size_t size;

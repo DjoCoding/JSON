@@ -5,6 +5,7 @@
 #include "json-clean.h"
 #define JSON_PRINTER_IMPLEMENTATION
 #include "json-pretty-printer.h"
+#include "../tools/hashmap.h"
 
 // Parse the json string
 bool json_parse(JSON_Parser *self);
@@ -64,7 +65,7 @@ static double json_parser_parse_float(JSON_Parser *self) {
 JSON_Item json_parser_parse_item(JSON_Parser *self) {
     JSON_Item item = {0};
 
-    if (peot(self)) { JSON_THROW_ERROR(self, "%s: expected token of type string but end of tokens found\n", self->source.filename);  goto return_defer; }
+    if (peot(self)) { JSON_THROW_ERROR(self, ERROR_PRE "%s: expected token of type string but end of tokens found\n", self->source.filename);  goto return_defer; }
 
     JSON_Token token = {0};
     if (!pexpect(self, TOKEN_KIND_STRING, &token)) {
@@ -131,6 +132,10 @@ return_defer:
 }
 
 JSON json_parser_parse_object(JSON_Parser *self) {
+    // we just need to store the keys without the values
+    HashMap keys;
+    hashmap_init(&keys, 0);
+
     JSON result = malloc(sizeof(*result));
 
     if (peot(self)) { JSON_THROW_ERROR(self, "%s: expected `{` token but end of tokens found\n", self->source.filename);  goto return_defer; }
@@ -154,14 +159,25 @@ JSON json_parser_parse_object(JSON_Parser *self) {
         padvance(self);
         return result;
     }
-    
 
+    
     while (!peot(self)) {
         JSON_Item item = json_parser_parse_item(self);
         if (perror(self)) { goto return_defer; }
 
+        char *key = cstr_from_sv(item.key);
+        if (hashmap_find(&keys, key)) {
+            JSON_THROW_ERROR(self,"%s: double key found %s", self->source.filename, key);
+            free(key);
+            goto return_defer;
+        }
+
+        // if the key is not found, add it to the hashmap then
+        hashmap_add(&keys, key, NULL);
+        free(key);
+
         if (peot(self)) {
-            JSON_THROW_ERROR(self, "%s: expected `}` token but end of tokens found\n", self->source.filename);
+            JSON_THROW_ERROR(self, Red "%s: expected `}` token but end of tokens found", self->source.filename);
             goto return_defer;
         }
 
@@ -170,16 +186,18 @@ JSON json_parser_parse_object(JSON_Parser *self) {
         token = ppeek(self);
         if (token.kind == TOKEN_KIND_RIGHT_CURLY_BRACE) {
             padvance(self);
+            hashmap_destroy(&keys);
             return result;
         }
 
         if (!pexpect(self, TOKEN_KIND_COMMA, &token)) {
-            JSON_THROW_ERROR(self, "%s" LOC_FMT ": expected `}` token but %s found\n", self->source.filename, LOC_UNWRAP(token.loc), json_token_kind_to_cstr(token.kind));
+            JSON_THROW_ERROR(self, "%s" LOC_FMT ": expected `}` token but %s found", self->source.filename, LOC_UNWRAP(token.loc), json_token_kind_to_cstr(token.kind));
             goto return_defer;
         }
     }
 
 return_defer:
+    hashmap_destroy(&keys);
     json_clean_object(result);
     free(result);
     return NULL;

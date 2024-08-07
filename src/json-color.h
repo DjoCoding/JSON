@@ -12,5 +12,7 @@
 
 #define RESET     "\033[0m"
 
+#define ERROR Red
+
 
 #endif // JSON_COLOR_H

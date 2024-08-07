@@ -1,6 +1,8 @@
 #ifndef JSON_H
 #define JSON_H
 
+#include <errno.h>
+
 #include "src/json-error.h"
 #define JSON_CLEAN_IMPLEMENTATION
 #include "src/json-clean.h"
@@ -40,7 +42,7 @@ JSON_Parser json_parser_from_file(char *filename) {
 JSON_Parser json_parser_from_json_string(JSON_String s) {
     JSON_Parser parser = {0};
     parser.source.filename = NULL;
-    parser.source.text = s;
+    parser.source.text = json_string_copy(s);
     parser.lexer.loc = (Location) {1, 1};
     return parser;
 }
@@ -139,6 +141,15 @@ JSON json_parse_file(char *filename) {
 JSON json_parse_json_string(JSON_String s) {
     JSON_Parser parser = json_parser_from_json_string(s);
     return json_parse_using_parser(&parser);
+}
+
+void json_write_object_to_file(char *filename, JSON object) {
+    FILE *f = fopen(filename, "w");
+    if (!f) {
+        EXIT_ERROR("could not open the file %s: %s", filename, strerror(errno));
+    }
+    sJSON_Log(f, object);
+    fclose(f);
 }
 
 #endif

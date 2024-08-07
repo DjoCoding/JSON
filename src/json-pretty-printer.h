@@ -54,7 +54,7 @@ void JSON_Log_Item(FILE *stream, JSON_Item item, size_t indent) {
     {
         print_indent(stream, indent);
         JSON_Log_String(stream, item.key);
-        printf(": ");
+        fprintf(stream, ": ");
     }
 
     if (item.kind == JSON_NODE_KIND_STRING) {
