@@ -34,6 +34,7 @@ typedef union {
 typedef struct {
     JSON_Token_Kind kind;
     JSON_Token_As   as;
+    size_t          line;
 } JSON_Token;   
 
 typedef struct {
@@ -42,16 +43,16 @@ typedef struct {
     size_t size;
 } JSON_Tokens;
 
-JSON_Token json_token_integer_init(uint64_t integer) {
-    return (JSON_Token) { .kind = JSON_TOKEN_KIND_INTEGER, .as.integer = integer };
+JSON_Token json_token_integer_init(uint64_t integer, size_t line) {
+    return (JSON_Token) { .kind = JSON_TOKEN_KIND_INTEGER, .as.integer = integer, .line = line };
 }
 
-JSON_Token json_token_string_init(String_View s) {
-    return (JSON_Token) { .kind = JSON_TOKEN_KIND_STRING, .as.string = s };
+JSON_Token json_token_string_init(String_View s, size_t line) {
+    return (JSON_Token) { .kind = JSON_TOKEN_KIND_STRING, .as.string = s, .line = line };
 }
 
-JSON_Token json_token_init(JSON_Token_Kind kind) {
-    return (JSON_Token) { .kind = kind };
+JSON_Token json_token_init(JSON_Token_Kind kind, size_t line) {
+    return (JSON_Token) { .kind = kind, .line = line };
 }
 
 JSON_Tokens json_tokens() {
@@ -81,5 +82,8 @@ void json_tokens_append(JSON_Tokens *this, JSON_Token token) {
     this->items[this->count++] = token;
 }
 
+void json_tokens_free(JSON_Tokens *this) {
+    if (this->items) { free(this->items); }
+}
 
 #endif

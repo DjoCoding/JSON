@@ -67,6 +67,8 @@ struct JSON_Array {
 JSON_Node  json_object_node(JSON_Object object);
 JSON_Node  json_array_node(JSON_Array array);
 
+void json_array_free(JSON_Array *this);
+
 JSON_Pair_Value json_pair_value(JSON_Pair_Kind kind, JSON_Pair_As as) {
     return (JSON_Pair_Value) { .kind = kind, .as = as }; 
 }
@@ -163,6 +165,51 @@ void json_array_resize(JSON_Array *this) {
 void json_array_append_object(JSON_Array *this, JSON_Object object) {
     if (json_array_full(this)) { json_array_resize(this); }
     this->items[this->count++] = object;
+}
+
+void json_object_free(JSON_Object *this) {
+    for(size_t i = 0; i < this->count; ++i) {
+        JSON_Pair pair = this->items[i];
+        if (pair.key) { free(pair.key); }
+
+        switch(pair.value.kind) {
+            case JSON_PAIR_KIND_STRING:
+                if (pair.value.as.string) { free(pair.value.as.string); }
+                break;
+            case JSON_PAIR_KIND_OBJECT:
+                if (pair.value.as.node) { json_object_free(pair.value.as.node->as.object); free(pair.value.as.node->as.object); free(pair.value.as.node); }
+                break;
+            case JSON_PAIR_KIND_ARRAY:
+                if (pair.value.as.node) { json_array_free(pair.value.as.node->as.array); free(pair.value.as.node->as.array); free(pair.value.as.node); }
+                break;    
+            default:
+                break;
+        }
+    }
+}
+
+void json_array_free(JSON_Array *this) {
+    for(size_t i = 0; i < this->count; ++i) {
+        json_object_free(&this->items[i]);
+    }
+} 
+
+
+void json_node_free(JSON_Node *this) {
+    switch(this->kind) { 
+        case JSON_NODE_KIND_OBJECT:
+            if (this->as.object) {
+                json_object_free(this->as.object);
+                free(this->as.object);
+            } break;
+        case JSON_NODE_KIND_ARRAY:
+            if (this->as.array) {
+                json_array_free(this->as.array);
+                free(this->as.array);
+            } break;
+        default:
+            break;
+    }
 }
 
 

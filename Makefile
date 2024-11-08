@@ -1,5 +1,8 @@
-CC = cc 
-SRC = ./json
+CC   = cc 
+SRC  = ./lib
+JSON = ./json.h
+MAIN = main.c
 
-main: $(SRC)/*.h main.c
-	$(CC) main.c -o main -ggdb2
+
+main: $(SRC)/*.h $(MAIN) $(JSON)
+	$(CC) $(MAIN) -o main -ggdb2 -Wall

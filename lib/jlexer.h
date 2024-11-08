@@ -8,9 +8,19 @@
 
 #define JSON_RETURN_LEXER_ERROR(lexer, error_fmt, ...) \
     do { \
-        JSON_SET_ERROR((lexer)->error, error_fmt, __VA_ARGS__); \
-        return json_token_init(JSON_TOKEN_NONE); \
+        JSON_SET_ERROR((lexer)->error, "[LEXER] " error_fmt, __VA_ARGS__); \
+        return json_token_init(JSON_TOKEN_NONE, (lexer)->line); \
     } while(0)
+
+char symbols[JSON_TOKEN_SINGLE_SYMBOLS_COUNT] = {
+        '[',
+        ']',
+        '{',
+        '}',
+        ',',
+        ':'
+};
+
 
 typedef struct {
     String_View s;
@@ -46,6 +56,10 @@ int json_lexer_end_of_tokens(JSON_Lexer *this) {
     return this->current >= this->s.count;
 }
 
+int json_lexer_has_error(JSON_Lexer *this) {
+    return this->error.has_error;
+}
+
 void json_lexer_skip(JSON_Lexer *this) {
     while(!json_lexer_end_of_tokens(this)) {
         if (!isspace(json_lexer_peek(this))) { break; }
@@ -56,20 +70,11 @@ void json_lexer_skip(JSON_Lexer *this) {
 JSON_Token json_lexer_lex_token(JSON_Lexer *this) {
     char c = json_lexer_peek(this);
 
-    char symbols[JSON_TOKEN_SINGLE_SYMBOLS_COUNT] = {
-        '[',
-        ']',
-        '{',
-        '}',
-        ',',
-        ':'
-    };
-
     for(size_t i = 0; i < JSON_TOKEN_SINGLE_SYMBOLS_COUNT; ++i) {
         if (c == symbols[i]) {
             json_lexer_advance(this);
             JSON_Token_Kind kind = i + JSON_TOKEN_SINGLE_SYMBOL_BEGIN + 1;
-            return json_token_init(kind);
+            return json_token_init(kind, this->line);
         }
     }
 
@@ -85,13 +90,13 @@ JSON_Token json_lexer_lex_token(JSON_Lexer *this) {
             json_lexer_advance(this);
         
             if (current == '"') { 
-                return json_token_string_init(sv(begin, size));
+                return json_token_string_init(sv(begin, size), this->line);
             }
 
             ++size;
         }
         JSON_RETURN_LEXER_ERROR(this,
-                "Unexpected end of input at line: %zu, expected a quote to terminate the string " SV_FMT "\n", 
+                "Unexpected end of input at line: %zu, expected a quote to terminate the string " SV_FMT, 
                 this->line, 
                 SV_UNWRAP(sv(begin, size))
                 );
@@ -105,18 +110,18 @@ JSON_Token json_lexer_lex_token(JSON_Lexer *this) {
             char current = json_lexer_peek(this);
             
             if (!isdigit(current)) { 
-                return json_token_integer_init(int_from_sv(sv(begin, size)));
+                return json_token_integer_init(int_from_sv(sv(begin, size)), this->line);
             } 
 
             json_lexer_advance(this);
             ++size;
         }
 
-        return json_token_integer_init(int_from_sv(sv(begin, size)));
+        return json_token_integer_init(int_from_sv(sv(begin, size)), this->line);
     }
 
     JSON_RETURN_LEXER_ERROR(this,
-            "Unexpected character %c at line: %zu\n", 
+            "Unexpected character %c at line: %zu", 
             c, 
             this->line
         );

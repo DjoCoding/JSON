@@ -16,6 +16,4 @@ typedef struct {
         sprintf(json_error.error, error_fmt, __VA_ARGS__); \
     } while(0) 
 
-
-
 #endif

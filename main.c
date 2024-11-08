@@ -1,13 +1,12 @@
 #include <stdio.h>
 
-#include "./json/jlexer.h"
-#include "./json/jparser.h"
+#include "./json.h"
 
-int main(void) {
-    const char *filepath = "./djaoued.json";
+char *fcontent(const char *filepath) {
     FILE *f = fopen(filepath, "r");
+    
     if (!f) { 
-        perror("failed to open the json file");
+        perror("failed to open the file");
         exit(EXIT_FAILURE);
     }
 
@@ -22,17 +21,24 @@ int main(void) {
 
     fclose(f);
 
-    JSON_Lexer lexer = json_lexer(content);
-    JSON_Tokens tokens = json_lex(&lexer);
-    if (lexer.error.has_error) { 
-        fprintf(stderr, "lexing error: %s\n", lexer.error.error);
-        free(tokens.items);
+    return content;
+}
+
+int main(void) {
+    const char *filepath = "./example.json";
+    char *content = fcontent(filepath);
+    
+    JSON_Result result = json(content);
+    if (result.error.has_error) {
+        fprintf(stderr, "failed to parse the json file\n");
+        fprintf(stderr, "ERROR: %s\n", result.error.error);
         exit(EXIT_FAILURE);
     }
 
-    JSON_Parser parser = json_parser(tokens);
-    JSON_Node node = json_parse(&parser);
+    JSON_Node node = result.node;
+    json_log_node(stdout, &node);
+    json_node_free(&node);
 
-
+    free(content);
     return 0;
 }
